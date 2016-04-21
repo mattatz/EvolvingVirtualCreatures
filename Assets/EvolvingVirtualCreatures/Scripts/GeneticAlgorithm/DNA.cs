@@ -46,7 +46,7 @@ namespace mattatz.GeneticAlgorithm {
 			for (int i = 0, n = genes.Length; i < n; i++) {
 				if (Random.value < m) {
 					// genes[i] += Gaussian.Std(c, 0.25f);
-					genes[i] += Gaussian.Std(0f, 0.35f);
+					genes[i] += Gaussian.Std(0f, 0.75f);
 				}
 			}
 		}
