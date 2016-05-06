@@ -31,22 +31,32 @@ namespace mattatz.EvolvingVirtualCreatures {
 
 		protected CharacterJoint joint;
 		protected SideType side;
+        protected float axisForce, swingAxisForce;
 
 		// usage of CharacterJoint
 		// http://d.hatena.ne.jp/hidetobara/20111005/1317841046
-		CharacterJoint CreateJoint () {
+		CharacterJoint CreateJoint (float limit = 120f) {
 			joint = gameObject.AddComponent<CharacterJoint>();
 
 			var highTwistLimit = joint.highTwistLimit;
-			highTwistLimit.limit = 60f;
+			highTwistLimit.limit = limit;
 			joint.highTwistLimit = highTwistLimit;
 
 			var lowTwistLimit = joint.lowTwistLimit;
-			lowTwistLimit.limit = -60f;
+			lowTwistLimit.limit = -limit;
 			joint.lowTwistLimit = lowTwistLimit;
+
+            var swing1Limit = joint.swing1Limit;
+            swing1Limit.limit = limit;
+            joint.swing1Limit = swing1Limit;
+
+            var swing2Limit = joint.swing2Limit;
+            swing2Limit.limit = limit;
+            joint.swing2Limit = swing2Limit;
 
 			joint.enableCollision = true;
 			joint.enablePreprocessing = false;
+
 			return joint;
 		}
 
@@ -76,13 +86,25 @@ namespace mattatz.EvolvingVirtualCreatures {
 
 		public void Move (float axisForce, float swingAxisForce) {
 			if(joint == null) return;
-			
-			var axis = transform.TransformDirection(joint.axis);
-			Body.AddTorque(axis * axisForce);
 
-			var swingAxis = transform.TransformDirection(joint.swingAxis);
-			Body.AddTorque(swingAxis * swingAxisForce);
+            this.axisForce = axisForce;
+            this.swingAxisForce = swingAxisForce;
+			
+			// var axis = transform.TransformDirection(joint.axis);
+			// Body.AddTorque(axis * axisForce);
+			// Body.AddRelativeTorque(joint.axis * axisForce);
+
+			// var swingAxis = transform.TransformDirection(joint.swingAxis);
+			// Body.AddTorque(swingAxis * swingAxisForce);
+			// Body.AddRelativeTorque(joint.swingAxis * swingAxisForce);
 		}
+
+        void FixedUpdate () {
+			if(joint == null) return;
+
+			Body.AddRelativeTorque(joint.axis * axisForce);
+			Body.AddRelativeTorque(joint.swingAxis * swingAxisForce);
+        }
 
 		void OnCollisionEnter () {
 		}

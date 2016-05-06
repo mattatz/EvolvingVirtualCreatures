@@ -129,7 +129,7 @@ namespace mattatz.EvolvingVirtualCreatures {
 			// var inputLayer = body.Segments.Count * 3 + 6 + 3;
 			var inputLayer = body.Segments.Count * 4 + 6 + 3;
 
-			const int hiddenDepth = 1;
+			const int hiddenDepth = 2;
 			var hiddenLayer = body.Segments.Count * 10;
 
 			// each segments axis forces and swing axis forces

@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
+using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -24,8 +27,10 @@ namespace mattatz.EvolvingVirtualCreatures {
 
 		[SerializeField] float mutationRate = 0.2f;
 
+        [SerializeField] float wps = 30f; // working per seconds
+
 		[SerializeField] bool automatic = true;
-		[SerializeField] float interval = 40f;
+		[SerializeField] float automaticInterval = 40f;
 
 		void Start () {
 			Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Creature"), LayerMask.NameToLayer("Creature"));
@@ -41,27 +46,27 @@ namespace mattatz.EvolvingVirtualCreatures {
 
 			population.Setup();
 
+            wps = Mathf.Max(10f, wps);
+            StartCoroutine(Repeat(1f / wps, () => {
+                population.Work();
+                population.ComputeFitness();
+            }));
+
 			if(automatic) {
-				StartCoroutine(Repeat(interval));
+				StartCoroutine(Repeat(automaticInterval, () => {
+                    Reproduction();
+                }));
 			}
 
 		}
 
-		IEnumerator Repeat(float interval) {
-			yield return 0;
-
-			interval = Mathf.Clamp (interval, 30f, 90f);
-
+        IEnumerator Repeat(float interval, Action action) {
+            yield return 0;
 			while(true) {
 				yield return new WaitForSeconds(interval);
-				Reproduction();
+                action();
 			}
-		}
-
-		void Update () {
-			population.Work();
-			population.ComputeFitness();
-		}
+        }
 
 		public void Reproduction () {
 			population.ComputeFitness();
