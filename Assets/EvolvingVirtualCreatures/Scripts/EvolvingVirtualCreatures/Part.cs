@@ -6,7 +6,13 @@ namespace mattatz.EvolvingVirtualCreatures {
 	[RequireComponent (typeof(Rigidbody))]
 	public class Part : MonoBehaviour {
 
-		public bool Contact { get { return contact; } } 
+		public bool[] Contacts { 
+			get { 
+				return new bool[] { front.Contact, back.Contact, left.Contact, right.Contact, up.Contact, down.Contact };
+			} 
+		}
+
+		[SerializeField] Face front, back, left, right, up, down;
 
 		public Rigidbody Body { 
 			get { 
@@ -18,15 +24,6 @@ namespace mattatz.EvolvingVirtualCreatures {
 		}
 
 		private Rigidbody body;
-		private bool contact;
-
-		protected virtual void OnCollisionEnter (Collision collision) {
-			contact = (collision.gameObject.layer == LayerMask.NameToLayer("Floor")); 
-		}
-
-		protected virtual void OnCollisionExit (Collision collision) {
-			contact = false;
-		}
 
 	}
 

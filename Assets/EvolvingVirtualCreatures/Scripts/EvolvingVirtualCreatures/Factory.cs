@@ -89,6 +89,9 @@ namespace mattatz.EvolvingVirtualCreatures {
 		}
 
 		SampleCreature CreateCreature (string label, Vector3 position, DNA dna = null) {
+
+			// create creature based on morphology data
+
 			var rightArm = Instantiate(segmentPrefab).GetComponent<Segment>();
 			var leftArm = Instantiate(segmentPrefab).GetComponent<Segment>();
 			var body = Instantiate(bodyPrefab).GetComponent<Body>();

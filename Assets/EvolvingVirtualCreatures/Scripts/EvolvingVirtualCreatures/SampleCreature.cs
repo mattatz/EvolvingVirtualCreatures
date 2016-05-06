@@ -66,10 +66,12 @@ namespace mattatz.EvolvingVirtualCreatures {
 				inputs.Add(ang.x);
 				inputs.Add(ang.y);
 				inputs.Add(ang.z);
-				inputs.Add(segment.Contact ? 1f : 0f);
+				var segmentContacts = segment.Contacts;
+				for(int i = 0, n = segmentContacts.Length; i < n; i++) {
+					inputs.Add(segmentContacts[i] ? 1f : 0f);
+				}
 			});
 
-			// inputs.Add(body.Contact ? 1f : 0f);
 			var contacts = body.Contacts;
 			for(int i = 0, n = contacts.Length; i < n; i++) {
 				inputs.Add(contacts[i] ? 1f : 0f);
@@ -123,11 +125,11 @@ namespace mattatz.EvolvingVirtualCreatures {
 		}
 
 		public int[] GetLayersCount () {
-			// each segments rotation eular angles and contact state +
-			// body contact states for each faces (front, back, left, right, up, down) + 
+			// each segments rotation eular angles and contact states for each faces +
+			// body contact states for each faces +
 			// body xyz euler angles
 			// var inputLayer = body.Segments.Count * 3 + 6 + 3;
-			var inputLayer = body.Segments.Count * 4 + 6 + 3;
+			var inputLayer = body.Segments.Count * (3 + 6) + 6 + 3;
 
 			const int hiddenDepth = 2;
 			var hiddenLayer = body.Segments.Count * 10;
