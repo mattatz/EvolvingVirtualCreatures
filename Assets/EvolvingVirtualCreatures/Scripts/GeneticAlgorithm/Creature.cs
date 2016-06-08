@@ -22,9 +22,13 @@ namespace mattatz.GeneticAlgorithm {
 		}
 
 		public abstract Creature Generate(DNA dna);
-		public abstract void Work();
+		public abstract void Work(float dt);
 		public abstract float ComputeFitness ();
 		public abstract int GetGenesCount ();
+
+		public virtual void DrawGizmos () {}
+		public virtual void WakeUp() {}
+		public virtual void Sleep() {}
 
 	}
 

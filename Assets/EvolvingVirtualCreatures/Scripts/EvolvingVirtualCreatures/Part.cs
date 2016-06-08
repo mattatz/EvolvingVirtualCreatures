@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace mattatz.EvolvingVirtualCreatures {
 
-	[RequireComponent (typeof(Rigidbody))]
+	// [RequireComponent (typeof(Rigidbody))]
 	public class Part : MonoBehaviour {
 
 		public bool[] Contacts { 
@@ -12,18 +12,13 @@ namespace mattatz.EvolvingVirtualCreatures {
 			} 
 		}
 
-		[SerializeField] Face front, back, left, right, up, down;
-
-		public Rigidbody Body { 
+		public float[] Contacts01 {
 			get { 
-				if(body == null) {
-					body = GetComponent<Rigidbody>();
-				}
-				return body;
+				return new float[] { front.Contact01, back.Contact01, left.Contact01, right.Contact01, up.Contact01, down.Contact01 };
 			} 
 		}
 
-		private Rigidbody body;
+		[SerializeField] protected Face front, back, left, right, up, down;
 
 	}
 

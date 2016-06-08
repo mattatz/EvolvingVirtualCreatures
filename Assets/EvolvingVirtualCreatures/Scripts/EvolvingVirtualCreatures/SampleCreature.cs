@@ -2,6 +2,7 @@
 using Random = UnityEngine.Random;
 
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -13,27 +14,34 @@ namespace mattatz.EvolvingVirtualCreatures {
 
 	public class SampleCreature : Creature {
 
-		public Body Body { get { return body; } }
+		public Segment Body { get { return body; } }
 
 		protected Network network;
-		protected Body body;
 
+		protected Segment body;
+		protected List<Sensor> sensors = new List<Sensor>();
+		protected List<Effector> effectors = new List<Effector>();
+
+		protected Vector3 target;
+		protected float distance = 50f;
 		protected Vector3 origin;
 		protected Vector3 forward;
 
-		protected Vector3 prev;
-		protected float distance;
+		public SampleCreature (Segment body) {
+			this.target = body.transform.position + body.transform.forward * distance;
 
-		public SampleCreature (Body body) { 
+			GetAllSegments(body);
+
 			this.body = body;
 			this.dna = new DNA(GetGenesCount(), new Vector2(-1f, 1f));
 			network = new Network(GetLayersCount());
 		}
 
-		public SampleCreature (Body body, DNA dna) {
-			// each segment using dna.genes length is segments.Count * 2 + 1 (input layer) plus segments.Count (hiden layer)
-			// input layer count : 
-			// each segment's angles (0.0 ~ 360.0 ?) and body and segments contact state (0.0 or 1.0)
+		public SampleCreature (Segment body, DNA dna) {
+			this.target = body.transform.position + body.transform.forward * distance;
+
+			GetAllSegments(body);
+
 			this.body = body;
 			this.dna = dna;
 			network = new Network(GetLayersCount(), this.dna.genes);
@@ -44,10 +52,6 @@ namespace mattatz.EvolvingVirtualCreatures {
 
 			origin = body.transform.position;
 			forward = body.transform.forward;
-
-			prev = origin;
-			prev.y = 0f;
-			distance = 0f;
 		}
 
 		public override Creature Generate(DNA dna) {
@@ -57,61 +61,38 @@ namespace mattatz.EvolvingVirtualCreatures {
 			return new SampleCreature(body, dna);
 		}
 
-		public override void Work () {
+		public override void Work (float dt) {
 
+			// Sensing
 			var inputs = new List<float>();
-
-			body.Segments.ForEach(segment => {
-				var ang = segment.transform.localRotation.eulerAngles / 360f;
-				inputs.Add(ang.x);
-				inputs.Add(ang.y);
-				inputs.Add(ang.z);
-				var segmentContacts = segment.Contacts;
-				for(int i = 0, n = segmentContacts.Length; i < n; i++) {
-					inputs.Add(segmentContacts[i] ? 1f : 0f);
-				}
+			sensors.ForEach(sensor => {
+				inputs.AddRange(sensor.Output());
 			});
 
-			var contacts = body.Contacts;
-			for(int i = 0, n = contacts.Length; i < n; i++) {
-				inputs.Add(contacts[i] ? 1f : 0f);
-			}
+			float[] output = network.FeedForward(inputs.ToArray());
 
-			var angles = body.transform.localRotation.eulerAngles / 360f;
-			inputs.Add(angles.x);
-			inputs.Add(angles.y);
-			inputs.Add(angles.z);
+			int offset = 0;
+			effectors.ForEach(effector => {
+				int inputCount = effector.InputCount();
+				float[] input = new float[inputCount];
+				Array.Copy(output, offset, input, 0, inputCount);
+				effector.Affect(input, dt);
+				offset += inputCount;
+			});
 
-			// CAUTION:
-			// FeedForward inputs count is not equal to input layer neurons count.
-			// because of bias input neuron.
-			var output = network.FeedForward(inputs.ToArray());
-
-			// output includes each segment' axis force and swing axis force
-			Debug.Assert(output.Length == (Body.Segments.Count * 2));
-			for(int i = 0, n = Body.Segments.Count; i < n; i++) {
-				var axisForce = output[i];
-				var swingAxisForce = output[i + n];
-				axisForce = Mathf.Lerp (body.ForceRange.x, body.ForceRange.y, axisForce); // map 0.0 ~ 1.0 value to force min max
-				swingAxisForce = Mathf.Lerp (body.ForceRange.x, body.ForceRange.y, swingAxisForce); // map 0.0 ~ 1.0 value to force min max
-				body.Segments[i].Move(axisForce, swingAxisForce);
-			}
-
-			var cur = body.transform.position;
-			cur.y = 0f;
-
-			distance += (cur - prev).magnitude;
-
-			prev = cur;
 		}
 
 		public override float ComputeFitness () {
-			var dir = body.transform.position - origin;
-			var proj = Vector3.Project(dir, forward);
+			/*
+			var d = distance / (body.transform.position - target).magnitude;
+			if(d <= 1f) {
+				fitness = 0f;
+			} else {
+				fitness = Mathf.Pow (d, 2f);
+			}
+			*/
 
-			fitness = Mathf.Pow(Mathf.Max (0f, proj.magnitude), 2.0f);
-			body.SetScore(fitness);
-
+			fitness = (body.transform.position - origin).magnitude;
 			return fitness;
 		}
 
@@ -124,18 +105,29 @@ namespace mattatz.EvolvingVirtualCreatures {
 			return count;
 		}
 
+		void GetAllSegments (Segment root) {
+			// sensors.Add(new JointSensor(root.transform));
+			sensors.Add(new AngleSensor(root));
+			sensors.Add(new ContactSensor(root));
+			// sensors.Add(new DirectionSensor(root.transform, target));
+
+			effectors.Add(root);
+
+			root.Segments.ForEach(child => {
+				GetAllSegments(child);
+			});
+		}
+
 		public int[] GetLayersCount () {
-			// each segments rotation eular angles and contact states for each faces +
-			// body contact states for each faces +
-			// body xyz euler angles
-			// var inputLayer = body.Segments.Count * 3 + 6 + 3;
-			var inputLayer = body.Segments.Count * (3 + 6) + 6 + 3;
+			// target direction eular angles(x,y,z) and each segments rotation eular angles(x,y,z) and contact states(forward,back,right,left,up,down) for each faces
+			// var inputLayer = count * (3 + 6);
+			var inputLayer = sensors.Aggregate(0, (prod, next) => prod + next.OutputCount());
 
-			const int hiddenDepth = 2;
-			var hiddenLayer = body.Segments.Count * 10;
+			const int hiddenDepth = 4;
+			var hiddenLayer = inputLayer;
 
-			// each segments axis forces and swing axis forces
-			var outputLayer = body.Segments.Count * 2;
+			// (each segments - body) axis forces and swing axis forces
+			var outputLayer = effectors.Aggregate(0, (prod, next) => prod + next.InputCount());
 
 			int[] layersCount = new int[1 + hiddenDepth + 1];
 			layersCount[0] = inputLayer;
@@ -145,6 +137,20 @@ namespace mattatz.EvolvingVirtualCreatures {
 			layersCount[layersCount.Length - 1] = outputLayer;
 
 			return layersCount;
+		}
+
+		public override void WakeUp() {
+			body.WakeUp();
+		}
+
+		public override void Sleep() {
+			body.Sleep();
+		}
+
+		public override void DrawGizmos () {
+			Gizmos.color = Color.red;
+			Gizmos.DrawLine(body.transform.position, target);
+			Gizmos.DrawWireSphere(target, 1f);
 		}
 
 	}

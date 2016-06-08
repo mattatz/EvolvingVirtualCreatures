@@ -41,16 +41,15 @@ namespace mattatz.NeuralNetworks {
 
 			var n = layersCount.Length;
 			for(int i = 0; i < n; i++) {
-				bool bias = (i != 0 && i != n - 1);
+				bool useBias = (i != 0 && i != n - 1);
 
 				var m = layersCount[i];
 				var layer = new Neuron[m];
-
 				for(int j = 0; j < m - 1; j++) {
 					layer[j] = new Neuron();
 				}
 
-				if(bias) {
+				if(useBias) {
 					layer[m - 1] = new Neuron(1f, true);
 				} else {
 					layer[m - 1] = new Neuron();

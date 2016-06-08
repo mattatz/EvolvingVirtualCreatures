@@ -13,13 +13,13 @@ namespace mattatz.GeneticAlgorithm {
 		public int Generations { get { return generations; } }
 		public List<Creature> Creatures { get { return creatures; } }
 
-		protected float mutationRate = 0.5f;
+		public float mutationRate = 0.2f;
 		int generations = 0;
 
 		List<Creature> creatures = new List<Creature>();
 
-		public Population (float rate = 0.5f) {
-			mutationRate = rate;
+		public Population (float rate = 0.2f) {
+			mutationRate = Mathf.Clamp01(rate);
 		}
 
 		public void Setup () {
@@ -28,9 +28,9 @@ namespace mattatz.GeneticAlgorithm {
 			});
 		}
 
-		public void Work () {
+		public void Work (float dt) {
 			creatures.ForEach(creature => {
-				creature.Work();
+				creature.Work(dt);
 			});
 		}
 
