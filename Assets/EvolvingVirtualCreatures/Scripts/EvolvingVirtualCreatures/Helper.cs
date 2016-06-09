@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace mattatz.EvolvingVirtualCreatures {
 
 	public enum SideType {
-		Front 	= 1 << 0,
+		Forward = 1 << 0,
 		Back 	= 1 << 1,
 		Left 	= 1 << 2,
 		Right 	= 1 << 3,
@@ -20,7 +20,7 @@ namespace mattatz.EvolvingVirtualCreatures {
 	public class Helper {
 
 		public static Dictionary<SideType, Vector3> directions = new Dictionary<SideType, Vector3>() {
-			{ SideType.Front, Vector3.forward },
+			{ SideType.Forward, Vector3.forward },
 			{ SideType.Back, Vector3.back },
 			{ SideType.Left, Vector3.left },
 			{ SideType.Right, Vector3.right },
@@ -31,7 +31,7 @@ namespace mattatz.EvolvingVirtualCreatures {
 		public static SideType Axis (SideType type) {
 			switch(type) {
 
-			case SideType.Front:
+			case SideType.Forward:
 				return SideType.Up;
 			case SideType.Back:
 				return SideType.Down;
@@ -42,7 +42,7 @@ namespace mattatz.EvolvingVirtualCreatures {
 				return SideType.Down;
 
 			case SideType.Up:
-				return SideType.Front;
+				return SideType.Forward;
 			case SideType.Down:
 				return SideType.Back;
 
@@ -53,13 +53,13 @@ namespace mattatz.EvolvingVirtualCreatures {
 		public static SideType SwingAxis (SideType type) {
 			switch(type) {
 
-			case SideType.Front:
+			case SideType.Forward:
 				return SideType.Left;
 			case SideType.Back:
 				return SideType.Right;
 
 			case SideType.Left:
-				return SideType.Front;
+				return SideType.Forward;
 			case SideType.Right:
 				return SideType.Back;
 
@@ -74,10 +74,10 @@ namespace mattatz.EvolvingVirtualCreatures {
 
 		public static SideType Inverse (SideType type) {
 			switch(type) {
-			case SideType.Front:
+			case SideType.Forward:
 				return SideType.Back;
 			case SideType.Back:
-				return SideType.Front;
+				return SideType.Forward;
 			case SideType.Left:
 				return SideType.Right;
 			case SideType.Right:
@@ -88,7 +88,7 @@ namespace mattatz.EvolvingVirtualCreatures {
 				return SideType.Up;
 			}
 
-			return SideType.Front;
+			return SideType.Forward;
 		}
 
 	}

@@ -107,8 +107,8 @@ namespace mattatz.EvolvingVirtualCreatures {
 
 		void GetAllSegments (Segment root) {
 			// sensors.Add(new JointSensor(root.transform));
-			sensors.Add(new AngleSensor(root));
-			sensors.Add(new ContactSensor(root));
+			sensors.Add(new AnchorAngleSensor(root));
+			sensors.Add(new PartContactsSensor(root));
 			// sensors.Add(new DirectionSensor(root.transform, target));
 
 			effectors.Add(root);

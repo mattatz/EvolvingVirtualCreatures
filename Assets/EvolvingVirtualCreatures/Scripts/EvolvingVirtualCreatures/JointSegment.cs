@@ -9,16 +9,6 @@ namespace mattatz.EvolvingVirtualCreatures {
 
 		public List<JointSegment> Segments { get { return segments; } }
 
-		public float[] Sensor { 
-			get {
-				var angles = transform.localRotation.eulerAngles / 360f;
-				return new float[] {
-					angles.x, angles.y, angles.z, 
-					front.Contact01, back.Contact01, left.Contact01, right.Contact01, up.Contact01, down.Contact01
-				};
-			} 
-		}
-
 		public Rigidbody Body {
 			get {
 				if(body == null) {
@@ -101,16 +91,6 @@ namespace mattatz.EvolvingVirtualCreatures {
 			this.side = side;
 			Init (parent);
 			parent.AddSegment(this);
-		}
-
-		public void Sensing (List<float> sensors) {
-			var sensor = Sensor;
-			for(int i = 0, n = sensor.Length; i < n; i++) {
-				sensors.Add(sensor[i]);
-			}
-			Segments.ForEach(segment => {
-				segment.Sensing(sensors);
-			});
 		}
 
 		public void WakeUp () {

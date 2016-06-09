@@ -3,11 +3,11 @@ using System.Collections;
 
 namespace mattatz.EvolvingVirtualCreatures {
 
-	public class JointSensor : Sensor {
+	public class TransformAngleSensor : Sensor {
 
 		protected Transform transform;
 
-		public JointSensor (Transform transform) {
+		public TransformAngleSensor (Transform transform) {
 			this.transform = transform;
 		}
 

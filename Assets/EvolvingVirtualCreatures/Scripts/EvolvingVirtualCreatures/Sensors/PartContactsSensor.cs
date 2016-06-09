@@ -3,11 +3,11 @@ using System.Collections;
 
 namespace mattatz.EvolvingVirtualCreatures {
 
-	public class ContactSensor : Sensor {
+	public class PartContactsSensor : Sensor {
 
 		protected Part part;
 
-		public ContactSensor (Part part) {
+		public PartContactsSensor (Part part) {
 			this.part = part;
 		}
 

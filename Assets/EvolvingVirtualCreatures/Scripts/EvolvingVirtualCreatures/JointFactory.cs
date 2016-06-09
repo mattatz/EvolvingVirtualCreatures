@@ -57,8 +57,8 @@ namespace mattatz.EvolvingVirtualCreatures {
 			root.Connect(leftArm0, SideType.Left);
 			root.Connect(rightArm0, SideType.Right);
 
-			leftArm0.Connect(leftArm1, SideType.Left);
-			rightArm0.Connect(rightArm1, SideType.Right);
+			// leftArm0.Connect(leftArm1, SideType.Left);
+			// rightArm0.Connect(rightArm1, SideType.Right);
 
 			int hcount = Mathf.FloorToInt(count * 0.5f);
 			for(int i = 0; i < count; i++) {

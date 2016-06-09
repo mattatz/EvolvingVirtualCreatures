@@ -3,11 +3,11 @@ using System.Collections;
 
 namespace mattatz.EvolvingVirtualCreatures {
 
-	public class AngleSensor : Sensor {
+	public class AnchorAngleSensor : Sensor {
 
 		protected Segment segment;
 
-		public AngleSensor (Segment segment) {
+		public AnchorAngleSensor (Segment segment) {
 			this.segment = segment;
 		}
 
