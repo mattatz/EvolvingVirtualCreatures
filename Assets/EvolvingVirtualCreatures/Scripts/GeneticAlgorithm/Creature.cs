@@ -29,6 +29,7 @@ namespace mattatz.GeneticAlgorithm {
 		public virtual void DrawGizmos () {}
 		public virtual void WakeUp() {}
 		public virtual void Sleep() {}
+		public virtual void Destroy() {}
 
 	}
 

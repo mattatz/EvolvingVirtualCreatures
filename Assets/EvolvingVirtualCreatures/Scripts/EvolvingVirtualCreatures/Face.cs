@@ -36,7 +36,7 @@ namespace mattatz.EvolvingVirtualCreatures {
 
 		void Awake () {
 			material = GetComponent<MeshRenderer>().material;
-			floor = new Plane(Vector3.up, 0f);
+			floor = new Plane(Vector3.up, -0.001f);
 
 			edges = new List<Edge>();
 

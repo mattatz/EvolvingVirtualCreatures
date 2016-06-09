@@ -14,7 +14,7 @@ using mattatz.Utils;
 
 namespace mattatz.EvolvingVirtualCreatures {
 
-	public class Factory : MonoBehaviour {
+	public class JointFactory : MonoBehaviour {
 
 		Population population;
 		[SerializeField] Text generationLabel;
@@ -49,20 +49,21 @@ namespace mattatz.EvolvingVirtualCreatures {
 
 			root = new Node(Vector3.one * 0.5f);
 			var leftArm0 = new Node(new Vector3(0.8f, 0.2f, 0.2f));
-			var leftArm1 = new Node(new Vector3(0.6f, 0.15f, 0.15f));
 			var rightArm0 = new Node(new Vector3(0.8f, 0.2f, 0.2f));
+
+			var leftArm1 = new Node(new Vector3(0.6f, 0.15f, 0.15f));
 			var rightArm1 = new Node(new Vector3(0.6f, 0.15f, 0.15f));
 
 			root.Connect(leftArm0, SideType.Left);
 			root.Connect(rightArm0, SideType.Right);
 
-			// leftArm0.Connect(leftArm1, SideType.Left);
-			// rightArm0.Connect(rightArm1, SideType.Right);
+			leftArm0.Connect(leftArm1, SideType.Left);
+			rightArm0.Connect(rightArm1, SideType.Right);
 
 			int hcount = Mathf.FloorToInt(count * 0.5f);
 			for(int i = 0; i < count; i++) {
 				var position = new Vector3((i - hcount) * size, 0f, 0f) + offset;
-				SampleCreature creature = CreateCreature(i.ToString(), root, position);
+				JointSampleCreature creature = CreateCreature(i.ToString(), root, position);
 				population.AddCreature(creature);
 			}
 
@@ -113,8 +114,7 @@ namespace mattatz.EvolvingVirtualCreatures {
 			}, new Vector2(-1f, 1f));
 
 			ancestors.ForEach(ancestor => {
-				var go = (ancestor as SampleCreature).Body.gameObject;
-				Destroy(go);
+				(ancestor as JointSampleCreature).Destroy();
 			});
 
 			population.Setup();
@@ -138,45 +138,48 @@ namespace mattatz.EvolvingVirtualCreatures {
 			}
 		}
 	
-		SampleCreature CreateCreature (string label, Node root, Vector3 position, DNA dna = null) {
-			var body = Build (root);
-			body.transform.position = position;
+		JointSampleCreature CreateCreature (string label, Node root, Vector3 position, DNA dna = null) {
 
-			SampleCreature creature;
+			var group = new GameObject("Creature");
+			var body = Build (group.transform, root);
+			group.transform.position = position;
+
+			JointSampleCreature creature;
 			if(dna == null) {
-				creature = new SampleCreature(body);
+				creature = new JointSampleCreature(body);
 			} else {
-				creature = new SampleCreature(body, dna);
+				creature = new JointSampleCreature(body, dna);
 			}
 
 			var tm = Instantiate(scoreLabelPrefab).GetComponent<TextMesh>();
 			tm.transform.parent = creature.Body.transform;
-			tm.transform.localPosition = Vector3.zero;
+			tm.transform.localPosition = Vector3.up;
 			scoreLabels.Add(creature, tm);
 
 			return creature;
 		}
 
-		public Segment Build (Node root) {
-			var parent = Instantiate(segmentPrefab).GetComponent<Segment>();
-			parent.SetRoot(true);
+		public JointSegment Build (Transform group, Node root) {
+			var parent = Instantiate(segmentPrefab).GetComponent<JointSegment>();
+			parent.transform.parent = group;
 			parent.transform.localScale = root.Size;
 			var cons = root.GetConnections();
 			for(int i = 0, n = cons.Length; i < n; i++) {
 				var con = cons[i];
-				Build (parent, con.Side, con.To);
+				Build (group, parent, con.Side, con.To);
 			}
 			return parent;
 		}
 
-		void Build (Segment parentSegment, SideType side, Node childNode) {
-			var cur = Instantiate(segmentPrefab).GetComponent<Segment>();
+		void Build (Transform group, JointSegment parentSegment, SideType side, Node childNode) {
+			var cur = Instantiate(segmentPrefab).GetComponent<JointSegment>();
+			cur.transform.parent = group;
 			cur.transform.localScale = childNode.Size;
 			cur.Connect(parentSegment, side);
 			var cons = childNode.GetConnections();
 			for(int i = 0, n = cons.Length; i < n; i++) {
 				var con = cons[i];
-				Build (cur, con.Side, con.To);
+				Build (group, cur, con.Side, con.To);
 			}
 		}
 

@@ -49,34 +49,6 @@ namespace mattatz.EvolvingVirtualCreatures {
 			root = flag;
 		}
 
-		// usage of CharacterJoint
-		// http://d.hatena.ne.jp/hidetobara/20111005/1317841046
-		CharacterJoint CreateJoint (float limit = 120f) {
-			joint = gameObject.AddComponent<CharacterJoint>();
-
-			var highTwistLimit = joint.highTwistLimit;
-			highTwistLimit.limit = limit;
-			joint.highTwistLimit = highTwistLimit;
-
-			var lowTwistLimit = joint.lowTwistLimit;
-			lowTwistLimit.limit = -limit;
-			joint.lowTwistLimit = lowTwistLimit;
-
-            var swing1Limit = joint.swing1Limit;
-            swing1Limit.limit = limit;
-            joint.swing1Limit = swing1Limit;
-
-            var swing2Limit = joint.swing2Limit;
-            swing2Limit.limit = limit;
-            joint.swing2Limit = swing2Limit;
-
-			joint.enableCollision = true;
-			// joint.enableCollision = false;
-			joint.enablePreprocessing = false;
-
-			return joint;
-		}
-
 		public void Init () {
 			/*
 			Body.velocity *= 0f;

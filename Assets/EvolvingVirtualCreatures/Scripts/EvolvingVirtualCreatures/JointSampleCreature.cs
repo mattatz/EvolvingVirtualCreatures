@@ -12,13 +12,13 @@ using Network = mattatz.NeuralNetworks.Network;
 
 namespace mattatz.EvolvingVirtualCreatures {
 
-	public class SampleCreature : Creature {
+	public class JointSampleCreature : Creature {
 
-		public Segment Body { get { return body; } }
+		public JointSegment Body { get { return body; } }
 
 		protected Network network;
 
-		protected Segment body;
+		protected JointSegment body;
 		protected List<Sensor> sensors = new List<Sensor>();
 		protected List<Effector> effectors = new List<Effector>();
 
@@ -27,7 +27,7 @@ namespace mattatz.EvolvingVirtualCreatures {
 		protected Vector3 origin;
 		protected Vector3 forward;
 
-		public SampleCreature (Segment body) {
+		public JointSampleCreature (JointSegment body) {
 			this.target = body.transform.position + body.transform.forward * distance;
 
 			GetAllSegments(body);
@@ -37,7 +37,7 @@ namespace mattatz.EvolvingVirtualCreatures {
 			network = new Network(GetLayersCount());
 		}
 
-		public SampleCreature (Segment body, DNA dna) {
+		public JointSampleCreature (JointSegment body, DNA dna) {
 			this.target = body.transform.position + body.transform.forward * distance;
 
 			GetAllSegments(body);
@@ -58,7 +58,7 @@ namespace mattatz.EvolvingVirtualCreatures {
 			body.transform.position = origin;
 			body.transform.localRotation = Quaternion.identity;
 			body.Init();
-			return new SampleCreature(body, dna);
+			return new JointSampleCreature(body, dna);
 		}
 
 		public override void Work (float dt) {
@@ -83,16 +83,15 @@ namespace mattatz.EvolvingVirtualCreatures {
 		}
 
 		public override float ComputeFitness () {
-			/*
 			var d = distance / (body.transform.position - target).magnitude;
 			if(d <= 1f) {
 				fitness = 0f;
 			} else {
 				fitness = Mathf.Pow (d, 2f);
 			}
-			*/
 
-			fitness = (body.transform.position - origin).magnitude;
+			// fitness = (body.transform.position - origin).magnitude;
+
 			return fitness;
 		}
 
@@ -105,9 +104,8 @@ namespace mattatz.EvolvingVirtualCreatures {
 			return count;
 		}
 
-		void GetAllSegments (Segment root) {
-			// sensors.Add(new JointSensor(root.transform));
-			sensors.Add(new AngleSensor(root));
+		void GetAllSegments (JointSegment root) {
+			sensors.Add(new JointSensor(root.transform));
 			sensors.Add(new ContactSensor(root));
 			// sensors.Add(new DirectionSensor(root.transform, target));
 
@@ -148,7 +146,8 @@ namespace mattatz.EvolvingVirtualCreatures {
 		}
 
 		public override void Destroy () {
-			GameObject.Destroy(Body.gameObject);
+			var group = Body.transform.parent;
+			GameObject.Destroy(group.gameObject);
 		}
 
 		public override void DrawGizmos () {
