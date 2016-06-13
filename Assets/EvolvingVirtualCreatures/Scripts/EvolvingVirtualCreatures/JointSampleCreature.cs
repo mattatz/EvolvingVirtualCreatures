@@ -83,8 +83,9 @@ namespace mattatz.EvolvingVirtualCreatures {
 		}
 
 		public override float ComputeFitness () {
-			var d = distance / (body.transform.position - target).magnitude;
-			if(d <= 1f) {
+			var d = distance - (body.transform.position - target).magnitude;
+
+			if(d <= 0f) {
 				fitness = 0f;
 			} else {
 				fitness = Mathf.Pow (d, 2f);
@@ -121,7 +122,7 @@ namespace mattatz.EvolvingVirtualCreatures {
 			// var inputLayer = count * (3 + 6);
 			var inputLayer = sensors.Aggregate(0, (prod, next) => prod + next.OutputCount());
 
-			const int hiddenDepth = 4;
+			const int hiddenDepth = 3;
 			var hiddenLayer = inputLayer;
 
 			// (each segments - body) axis forces and swing axis forces

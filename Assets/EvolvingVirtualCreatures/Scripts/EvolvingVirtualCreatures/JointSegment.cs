@@ -94,14 +94,14 @@ namespace mattatz.EvolvingVirtualCreatures {
 		}
 
 		public void WakeUp () {
-			// Body.isKinematic = false;
+			Body.isKinematic = false;
 			Segments.ForEach(segment => {
 				segment.WakeUp();
 			});
 		}
 
 		public void Sleep () {
-			// Body.isKinematic = true;
+			Body.isKinematic = true;
 			Segments.ForEach(segment => {
 				segment.Sleep();
 			});
@@ -109,8 +109,8 @@ namespace mattatz.EvolvingVirtualCreatures {
 
         void FixedUpdate () {
 			if(joint == null) return;
-			Body.AddRelativeTorque(joint.axis * axisForce);
-			Body.AddRelativeTorque(joint.swingAxis * swingAxisForce);
+			Body.AddRelativeTorque(joint.axis * axisForce, ForceMode.VelocityChange);
+			Body.AddRelativeTorque(joint.swingAxis * swingAxisForce, ForceMode.VelocityChange);
         }
 
 		public void AddSegment (JointSegment segment) {
@@ -124,12 +124,18 @@ namespace mattatz.EvolvingVirtualCreatures {
 		public void Affect(float[] inputs, float dt) {
 			if(joint == null) return;
 
-			// joint.axis;
-			// var axisLimit = joint.swing1Limit;
-			// transform.RotateAround(joint.connectedAnchor, joint.axis, Mathf.Lerp(joint.lowTwistLimit.limit, joint.highTwistLimit.limit, inputs[0]));
-
             axisForce = Mathf.Lerp (forceRange.x, forceRange.y, inputs[0]);
             swingAxisForce = Mathf.Lerp (forceRange.x, forceRange.y, inputs[1]);
+		}
+
+		void OnDrawGizmos () {
+			/*
+			if(joint == null) return;
+			Gizmos.color = Color.green;
+			var v0 = transform.TransformVector((joint.axis * axisForce).normalized * 5f);
+			var axis = transform.TransformPoint(joint.anchor);
+			Gizmos.DrawLine(axis, axis + v0);
+			*/
 		}
 
 	}

@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,7 +18,9 @@ namespace mattatz.EvolvingVirtualCreatures {
 	public class JointFactory : MonoBehaviour {
 
 		Population population;
+
 		[SerializeField] Text generationLabel;
+		[SerializeField] Text automationLabel;
 
 		[SerializeField] float size = 5f;
 		[SerializeField] int count = 50;
@@ -32,6 +35,9 @@ namespace mattatz.EvolvingVirtualCreatures {
 
 		[SerializeField] bool automatic = true;
 		[SerializeField] float automaticInterval = 40f;
+
+		[SerializeField] string fileName = "DNA";
+
 		Coroutine routine;
 		bool stopping = false;
 
@@ -41,35 +47,11 @@ namespace mattatz.EvolvingVirtualCreatures {
 		void Start () {
 			// Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Creature"), LayerMask.NameToLayer("Creature"));
 
-			Begin();
-		}
-
-		public void Begin () {
 			population = new Population(mutationRate);
 
-			root = new Node(Vector3.one * 0.5f);
-			var leftArm0 = new Node(new Vector3(0.8f, 0.2f, 0.2f));
-			var rightArm0 = new Node(new Vector3(0.8f, 0.2f, 0.2f));
+			Setup();
 
-			var leftArm1 = new Node(new Vector3(0.6f, 0.15f, 0.15f));
-			var rightArm1 = new Node(new Vector3(0.6f, 0.15f, 0.15f));
-
-			root.Connect(leftArm0, SideType.Left);
-			root.Connect(rightArm0, SideType.Right);
-
-			// leftArm0.Connect(leftArm1, SideType.Left);
-			// rightArm0.Connect(rightArm1, SideType.Right);
-
-			int hcount = Mathf.FloorToInt(count * 0.5f);
-			for(int i = 0; i < count; i++) {
-				var position = new Vector3((i - hcount) * size, 0f, 0f) + offset;
-				JointSampleCreature creature = CreateCreature(i.ToString(), root, position);
-				population.AddCreature(creature);
-			}
-
-			population.Setup();
-
-            wps = Mathf.Max(10f, wps);
+			wps = Mathf.Max(10f, wps);
 
 			float dt = 1f / wps;
             StartCoroutine(Repeat(dt, () => {
@@ -82,6 +64,33 @@ namespace mattatz.EvolvingVirtualCreatures {
 			if(automatic) {
 				Automation();
 			}
+		}
+
+		public void Setup (DNA dna = null) {
+
+			root = new Node(Vector3.one * 0.5f);
+			var leftArm0 = new Node(new Vector3(0.8f, 0.2f, 0.2f));
+			var rightArm0 = new Node(new Vector3(0.8f, 0.2f, 0.2f));
+
+			var leftArm1 = new Node(new Vector3(0.6f, 0.15f, 0.15f));
+			var rightArm1 = new Node(new Vector3(0.6f, 0.15f, 0.15f));
+
+			root.Connect(leftArm0, SideType.Left);
+			root.Connect(rightArm0, SideType.Right);
+
+			leftArm0.Connect(leftArm1, SideType.Left);
+			rightArm0.Connect(rightArm1, SideType.Right);
+
+			int hcount = Mathf.FloorToInt(count * 0.5f);
+			for(int i = 0; i < count; i++) {
+				var position = new Vector3((i - hcount) * size, 0f, 0f) + offset;
+				JointSampleCreature creature = CreateCreature(i.ToString(), root, position, dna);
+				population.AddCreature(creature);
+			}
+
+			population.Setup();
+
+
 		}
 
 		void Update () {
@@ -121,23 +130,73 @@ namespace mattatz.EvolvingVirtualCreatures {
 			generationLabel.text = population.Generations.ToString();
 		}
 
+		void Clear () {
+			var creatures = population.Creatures;
+			creatures.ForEach(c => {
+				(c as JointSampleCreature).Destroy();
+			});
+			creatures.Clear();
+			scoreLabels.Clear();
+		}
+
 		public void Automation () {
-			if(routine != null) StopCoroutine(routine);
-			routine = StartCoroutine(Repeat(automaticInterval, () => {
-				if(!stopping) Reproduction();
-			}));
+			if(routine != null) { 
+				automationLabel.text = "Automation";
+				StopCoroutine(routine); 
+				routine = null;
+			} else {
+				automationLabel.text = "Manual";
+				routine = StartCoroutine(Repeat(automaticInterval, () => {
+					if(!stopping) Reproduction();
+				}));
+			}
 		}
 
 		public void Stop () {
 			stopping = !stopping;
-			// Debug.Log (stopping);
 			if(stopping) {
 				population.Creatures.ForEach(c => c.Sleep());
 			} else {
 				population.Creatures.ForEach(c => c.WakeUp());
 			}
 		}
-	
+
+		public void Save () {
+
+			var creatures = population.Creatures;
+			var c = creatures.First();
+			var max = c.ComputeFitness();
+			for(int i = 1, n = creatures.Count; i < n; i++) {
+				var c2 = creatures[i];
+				var fitness = c2.ComputeFitness();
+				if(fitness > max) {
+					c = c2;
+					max = fitness;
+				}
+			}
+
+			var dna = c.DNA;
+
+			string path = System.IO.Path.Combine(Application.streamingAssetsPath, fileName + ".csv");
+
+			FileInfo fi = new FileInfo(path);
+			StreamWriter sw = fi.CreateText();
+			sw.WriteLine(string.Join(",", dna.genes.Select(f => f.ToString()).ToArray()));
+			sw.Flush();
+			sw.Close();
+		}
+
+		public void Load () {
+			string path = System.IO.Path.Combine(Application.streamingAssetsPath, fileName + ".csv");
+			string text = System.IO.File.ReadAllText(path);
+			float[] genes = text.Split(',').Select(str => float.Parse(str)).ToArray();
+
+			Clear();
+
+			var dna = new DNA(genes);
+			Setup (dna);
+		}
+
 		JointSampleCreature CreateCreature (string label, Node root, Vector3 position, DNA dna = null) {
 
 			var group = new GameObject("Creature");
